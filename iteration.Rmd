@@ -1,0 +1,6 @@
+---
+title: "iteration"
+author: "Nelson Gaillard"
+date: "2025-11-13"
+output: github_document
+---

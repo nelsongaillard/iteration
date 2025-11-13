@@ -392,3 +392,15 @@ for (i in 1:4) {
   
 }
 ```
+
+## Let’s try map!
+
+``` r
+output = map(list_norm, mean_and_sd)
+```
+
+What if you want a different function..?
+
+``` r
+output = map(list_norm, IQR)
+```

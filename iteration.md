@@ -192,3 +192,21 @@ sim_mean_sd(samp_size = 100)
     ##    mean    sd
     ##   <dbl> <dbl>
     ## 1  2.96  4.03
+
+## Let’s review Napoleon Dynamite
+
+## Mean scoping example
+
+``` r
+f = function(x) {
+  z = x + y
+  z
+}
+
+x = 1
+y = 2
+
+f(x = y)
+```
+
+    ## [1] 4

@@ -642,3 +642,122 @@ sim_results |>
 ```
 
 ![](iteration_files/figure-gfm/unnamed-chunk-31-2.png)<!-- -->
+
+## Let’s try other sample sizes
+
+``` r
+n_list =
+  list(
+    "n = 30" = 30,
+    "n = 60" = 60,
+    "n = 120" = 120,
+    "n = 240" = 240
+  )
+
+output = vector("list", length = 4)
+
+output[[1]] = rerun(100, sim_mean_sd(samp_size = n_list[[1]])) |> bind_rows()
+```
+
+    ## Warning: `rerun()` was deprecated in purrr 1.0.0.
+    ## ℹ Please use `map()` instead.
+    ##   # Previously
+    ##   rerun(100, sim_mean_sd(samp_size = n_list[[1]]))
+    ## 
+    ##   # Now
+    ##   map(1:100, ~ sim_mean_sd(samp_size = n_list[[1]]))
+    ## This warning is displayed once every 8 hours.
+    ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+    ## generated.
+
+``` r
+output[[2]] = rerun(100, sim_mean_sd(samp_size = n_list[[2]])) |> bind_rows()
+```
+
+    ## Warning: `rerun()` was deprecated in purrr 1.0.0.
+    ## ℹ Please use `map()` instead.
+    ##   # Previously
+    ##   rerun(100, sim_mean_sd(samp_size = n_list[[2]]))
+    ## 
+    ##   # Now
+    ##   map(1:100, ~ sim_mean_sd(samp_size = n_list[[2]]))
+    ## This warning is displayed once every 8 hours.
+    ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+    ## generated.
+
+``` r
+for (i in 1:4) {
+  
+  output[[i]] =
+    rerun(100, sim_mean_sd(samp_size = n_list[[i]])) |> 
+    bind_rows()
+  
+}
+```
+
+    ## Warning: `rerun()` was deprecated in purrr 1.0.0.
+    ## ℹ Please use `map()` instead.
+    ##   # Previously
+    ##   rerun(100, sim_mean_sd(samp_size = n_list[[i]]))
+    ## 
+    ##   # Now
+    ##   map(1:100, ~ sim_mean_sd(samp_size = n_list[[i]]))
+    ## This warning is displayed once every 8 hours.
+    ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+    ## generated.
+
+``` r
+sim_results = 
+  tibble(
+    sample_size = c(30, 60, 120, 240)
+  ) |> 
+  mutate(
+    output_lists = map(.x = sample_size, ~ rerun(1000, sim_mean_sd(.x))),
+    estimate_df = map(output_lists, bind_rows)
+  ) |> 
+  select(-output_lists) |> 
+  unnest(estimate_df)
+```
+
+    ## Warning: There was 1 warning in `mutate()`.
+    ## ℹ In argument: `output_lists = map(.x = sample_size, ~rerun(1000,
+    ##   sim_mean_sd(.x)))`.
+    ## Caused by warning:
+    ## ! `rerun()` was deprecated in purrr 1.0.0.
+    ## ℹ Please use `map()` instead.
+    ##   # Previously
+    ##   rerun(1000, sim_mean_sd(.x))
+    ## 
+    ##   # Now
+    ##   map(1:1000, ~ sim_mean_sd(.x))
+
+Do some data frame things
+
+``` r
+sim_results |> 
+  mutate(
+    sample_size = str_c("n = ", sample_size), 
+    sample_size = fct_inorder(sample_size)
+  ) |> 
+  ggplot(aes(x = sample_size, y = mean)) +
+  geom_violin()
+```
+
+![](iteration_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
+
+``` r
+sim_results |>
+  group_by(sample_size) |> 
+  summarize(
+    avg_samp_mean = mean(mean),
+    sd_samp_mean = sd(mean)
+  )
+```
+
+    ## # A tibble: 4 × 3
+    ##   sample_size avg_samp_mean sd_samp_mean
+    ##         <dbl>         <dbl>        <dbl>
+    ## 1          30          3.00        0.712
+    ## 2          60          3.01        0.509
+    ## 3         120          3.00        0.372
+    ## 4         240          3.00        0.256

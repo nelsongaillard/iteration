@@ -30,6 +30,8 @@ library(rvest)
     ##     guess_encoding
 
 ``` r
+library(p8105.datasets)
+
 set.seed(1)
 ```
 
@@ -528,3 +530,115 @@ listcol_df =
     summary = map(samp, mean_and_sd),
     medians = map_dbl(samp, median))
 ```
+
+## Weather data
+
+## Let’s simulate something
+
+I have a function
+
+``` r
+sim_mean_sd = function(samp_size, mu = 3, sigma = 4) {
+  
+  sim_data = 
+    tibble(
+      x = rnorm(n = samp_size, mean = mu, sd = sigma)
+    )
+
+  sim_data |> 
+    summarize(
+      mean = mean(x),
+      sd = sd(x)
+    )
+}
+```
+
+I can “simulalte” by running this line.
+
+``` r
+sim_mean_sd(30)
+```
+
+    ## # A tibble: 1 × 2
+    ##    mean    sd
+    ##   <dbl> <dbl>
+    ## 1  2.85  4.98
+
+## Let’s simulate a lot
+
+Let’s start with a for loop
+
+``` r
+output = vector("list", length = 100)
+
+for (i in 1:100) {
+  
+  output[[i]] = sim_mean_sd(samp_size = 30)
+  
+}
+
+bind_rows(output)
+```
+
+    ## # A tibble: 100 × 2
+    ##     mean    sd
+    ##    <dbl> <dbl>
+    ##  1  2.91  4.02
+    ##  2  2.60  4.58
+    ##  3  2.96  5.06
+    ##  4  3.71  3.46
+    ##  5  2.87  3.88
+    ##  6  3.88  4.37
+    ##  7  2.35  5.10
+    ##  8  2.65  3.44
+    ##  9  2.60  3.73
+    ## 10  3.09  4.61
+    ## # ℹ 90 more rows
+
+Let’s use a loop function.
+
+``` r
+sim_results =
+  rerun(100, sim_mean_sd(samp_size = 30)) |> 
+  bind_rows()
+```
+
+    ## Warning: `rerun()` was deprecated in purrr 1.0.0.
+    ## ℹ Please use `map()` instead.
+    ##   # Previously
+    ##   rerun(100, sim_mean_sd(samp_size = 30))
+    ## 
+    ##   # Now
+    ##   map(1:100, ~ sim_mean_sd(samp_size = 30))
+    ## This warning is displayed once every 8 hours.
+    ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+    ## generated.
+
+Let’s look at results…
+
+``` r
+sim_results |> 
+  ggplot(aes(x = mean)) + geom_density()
+```
+
+![](iteration_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
+
+``` r
+sim_results |> 
+  summarize(
+    avg_samp_mean = mean(mean),
+    sd_samp_mean = sd(mean)
+  )
+```
+
+    ## # A tibble: 1 × 2
+    ##   avg_samp_mean sd_samp_mean
+    ##           <dbl>        <dbl>
+    ## 1          2.97        0.720
+
+``` r
+sim_results |> 
+  ggplot(aes(x = sd)) + geom_density()
+```
+
+![](iteration_files/figure-gfm/unnamed-chunk-31-2.png)<!-- -->
